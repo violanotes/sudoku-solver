@@ -23,6 +23,10 @@ repositories {
 
 
 dependencies {
-	compile('org.springframework.boot:spring-boot-starter')
+	compile 'org.springframework.boot:spring-boot-starter'
+	compile 'commons-io:commons-io:2.4'
+	compile 'com.fasterxml.jackson.core:jackson-databind:2.6.3'
+
+
 	testCompile('org.springframework.boot:spring-boot-starter-test')
 }
