@@ -7,4 +7,5 @@ import java.util.List;
  */
 public class BoardState {
     private List<Square> squares;
+    private int moveNumber;
 }
