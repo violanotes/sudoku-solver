@@ -2,12 +2,11 @@ package com.violanotes.sudokusolver.board.basic
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonProperty
-import com.violanotes.sudokusolver.board.associative.Box
-import com.violanotes.sudokusolver.board.associative.Column
-import com.violanotes.sudokusolver.board.associative.Row
+import com.violanotes.sudokusolver.board.supplemental.Box
+import com.violanotes.sudokusolver.board.supplemental.Column
+import com.violanotes.sudokusolver.board.supplemental.Row
 import com.violanotes.sudokusolver.board.entity.BoardEntity
 import com.violanotes.sudokusolver.exceptions.AssociationException
-import com.violanotes.sudokusolver.exceptions.QueryException
 import groovy.transform.InheritConstructors
 
 /**
@@ -16,7 +15,6 @@ import groovy.transform.InheritConstructors
 @JsonIgnoreProperties(ignoreUnknown = true)
 @InheritConstructors
 class Square extends BoardEntity {
-    BoardState boardState
     List<Hypothetical> hypotheticals
     Integer index
     Integer number
@@ -39,8 +37,15 @@ class Square extends BoardEntity {
     @Override
     void associate(BoardEntity entity) throws AssociationException {
         switch (entity.class) {
-            case (BoardState.class):
-                entity.squares.add(this)
+            case Hypothetical: hypotheticals.add entity
+                break
+            case BoardState: boardState = entity
+                break
+            case Row: row = entity
+                break
+            case Column: column = entity
+                break
+            case Box: box = entity
                 break
             default:
                 throw new AssociationException(entity, this)
@@ -48,17 +53,15 @@ class Square extends BoardEntity {
     }
 
     @Override
-    BoardEntity[] queryForClass(Class<BoardEntity> clazz, Closure<Boolean> condition) throws QueryException {
-        return null
-    }
-
-    @Override
     String toString() {
         return "Square{" +
-                "hypotheticals=" + hypotheticals +
+                // "hypotheticals=" + hypotheticals +
                 ", index=" + index +
                 ", number=" + number +
                 ", state=" + state +
+                ", row=" + row.index +
+                ", column=" + column.index +
+                ", box=" + box.index +
                 '}'
     }
 }

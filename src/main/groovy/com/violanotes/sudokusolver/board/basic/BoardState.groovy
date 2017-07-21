@@ -2,15 +2,14 @@ package com.violanotes.sudokusolver.board.basic
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.violanotes.sudokusolver.board.associative.Box
-import com.violanotes.sudokusolver.board.associative.BoxColumn
-import com.violanotes.sudokusolver.board.associative.BoxRow
-import com.violanotes.sudokusolver.board.associative.Column
-import com.violanotes.sudokusolver.board.associative.Row
+import com.violanotes.sudokusolver.board.supplemental.Box
+import com.violanotes.sudokusolver.board.supplemental.BoxColumn
+import com.violanotes.sudokusolver.board.supplemental.BoxRow
+import com.violanotes.sudokusolver.board.supplemental.Column
+import com.violanotes.sudokusolver.board.supplemental.Row
 import com.violanotes.sudokusolver.board.entity.BoardEntity
 import com.violanotes.sudokusolver.exceptions.AssociationException
 import com.violanotes.sudokusolver.exceptions.BoardEntityException
-import com.violanotes.sudokusolver.exceptions.QueryException
 import groovy.transform.InheritConstructors
 
 /**
@@ -19,9 +18,9 @@ import groovy.transform.InheritConstructors
 @JsonIgnoreProperties(ignoreUnknown = true)
 @InheritConstructors
 class BoardState extends BoardEntity {
-    List<Square> squares
     Integer sequence
 
+    List<Square> squares
     List<Row> rows
     List<Column> columns
     List<Box> boxes
@@ -38,12 +37,33 @@ class BoardState extends BoardEntity {
         boxColumns = []
     }
 
+    @Override
+    void associate(BoardEntity entity) {
+        switch(entity.class) {
+            case Square: squares.add entity
+                break
+            case Row: rows.add entity
+                break
+            case Column: columns.add entity
+                break
+            case Box: boxes.add entity
+                break
+            case BoxRow: boxRows.add entity
+                break
+            case BoxColumn: boxColumns.add entity
+                break
+
+            default:
+                throw new AssociationException(entity, this)
+        }
+    }
+
     static BoardState create(String json) throws BoardEntityException {
         try {
             BoardState boardState = new ObjectMapper().readValue(json, BoardState)
 
             // now set up the board
-            performBoardAssociations()
+            boardState.performBoardAssociations()
 
             return boardState
         } catch (IOException e) {
@@ -69,17 +89,19 @@ class BoardState extends BoardEntity {
             (0..80).each {
                 // create the square and associate it to the board
                 Square square = new Square(true)
-                square.associate(boardState)
+                associate(square, boardState)
                 square.index = it
                 square.number = numbers[it]
 
                 (1..9).each {
                     // create the hypothetical and associate it with the square
                     Hypothetical hypothetical = new Hypothetical(true)
-                    hypothetical.associate(square)
+                    associate(square, hypothetical)
                     hypothetical.number = it
                 }
             }
+
+            boardState.performBoardAssociations()
 
             return boardState
 
@@ -88,38 +110,68 @@ class BoardState extends BoardEntity {
         }
     }
 
-    private static void performBoardAssociations() throws BoardEntityException {
+    private void performBoardAssociations() throws BoardEntityException {
 
         // create 9 Rows
         (0..8).each {
-            Row row = new Row()
+            Row row = new Row(true)
+            row.index = it
+            associate(row, this)
         }
 
         // create 9 Columns
+        (0..8).each {
+            Column column = new Column(true)
+            column.index = it
+            associate(column, this)
+        }
 
         // create 9 Boxes
+        (0..8).each {
+            Box box = new Box(true)
+            box.index = it
+            associate(box, this)
+        }
 
         // create 3 BoxRows
+        (0..2).each {
+            BoxRow boxRow = new BoxRow(true)
+            boxRow.index = it
+            associate(boxRow, this)
+        }
 
         // create 3 BoxColumns
+        (0..2).each {
+            BoxColumn boxColumn = new BoxColumn(true)
+            boxColumn.index = it
+            associate(boxColumn, this)
+        }
 
         // take each box and associate it with the appropriate
         // boxRow
         // boxColumn
+        (0..8).each {
+            associate(boxes[it], boxRows[it.intdiv(3)])
+            associate(boxes[it], boxColumns[it % 3])
+
+            associate(rows[it], boxRows[it.intdiv(3)])
+            associate(columns[it], boxColumns[it % 3])
+        }
+
 
         // take each square and associate it in the appropriate:
 
         // row
         // column
         // box
-    }
+        (0..80).each {
+            associate(squares[it], rows[it.intdiv(9)])
+            associate(squares[it], columns[it % 9])
 
-    @Override
-    void associate(BoardEntity entity) {
-        switch(entity.class) {
-            case (Square) : getSequence()
-                break
-            default: throw new AssociationException(entity, this)
+            int boxRow = it.intdiv(9).intdiv(3)
+            int boxColumn = (it % 9).intdiv(3)
+
+            associate(squares[it], boxes[(3 * boxRow) + boxColumn])
         }
     }
 

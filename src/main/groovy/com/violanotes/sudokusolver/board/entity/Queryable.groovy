@@ -5,10 +5,10 @@ import com.violanotes.sudokusolver.exceptions.QueryException
 /**
  * Created by pc on 7/20/2017.
  */
-interface Queryable {
-    BoardEntity[] queryForClass(Class<BoardEntity> clazz, Closure<Boolean> condition) throws QueryException
-    BoardEntity queryForSingle(Class<BoardEntity> clazz, Closure<Boolean> condition) throws QueryException
-    BoardEntity[] queryForMultiple(Class<BoardEntity> clazz, Closure<Boolean> condition) throws QueryException
-    BoardEntity[] queryForMultiple(Class<BoardEntity> clazz, int count, Closure<Boolean> condition) throws QueryException
-    BoardEntity queryForNone(Class<BoardEntity> clazz, Closure<Boolean> condition) throws QueryException
+interface Queryable<T> {
+    T[] queryForClass(Class<T> clazz, Closure<Boolean> condition) throws QueryException
+    T queryForSingle(Class<T> clazz, Closure<Boolean> condition) throws QueryException
+    T[] queryForMultiple(Class<T> clazz, Closure<Boolean> condition) throws QueryException
+    T[] queryForMultiple(Class<T> clazz, int count, Closure<Boolean> condition) throws QueryException
+    T queryForNone(Class<T> clazz, Closure<Boolean> condition) throws QueryException
 }

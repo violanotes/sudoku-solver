@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.violanotes.sudokusolver.board.entity.BoardEntity
 import com.violanotes.sudokusolver.exceptions.AssociationException
-import com.violanotes.sudokusolver.exceptions.QueryException
 import groovy.transform.InheritConstructors
 
 /**
@@ -30,18 +29,13 @@ class Hypothetical extends BoardEntity {
     @Override
     void associate(BoardEntity entity) throws AssociationException {
         switch(entity.class) {
-            case Square:
-                entity.hypotheticals.add(this)
+            case BoardState: boardState
+                break
+            case Square: square = entity
                 break
             default:
                 throw new AssociationException(entity, this)
         }
-    }
-
-
-    @Override
-    BoardEntity[] queryForClass(Class<BoardEntity> clazz, Closure<Boolean> condition) throws QueryException {
-        return null
     }
 
     @Override

@@ -1,5 +1,6 @@
 package com.violanotes.sudokusolver.board.entity
 
+import com.violanotes.sudokusolver.board.basic.BoardState
 import com.violanotes.sudokusolver.exceptions.QueryException
 
 import java.lang.reflect.Field
@@ -8,38 +9,16 @@ import java.lang.reflect.ParameterizedType
 /**
  * Created by pc on 7/20/2017.
  */
-abstract class BoardEntity implements Associable, InitializableToEmpty, Queryable {
+abstract class BoardEntity implements Associable, InitializableToEmpty, Queryable<BoardEntity> {
 
-    static Map<String, Map<String, List<BoardEntity>>> subclassListsMap
+    /**
+     * all board entities should have a reference to the current board state
+     */
+    BoardState boardState
 
     BoardEntity(boolean initializeToEmpty = false){
         if (initializeToEmpty) this.initializeToEmpty()
-        populateListsMap()
-    }
-
-    static {
-        subclassListsMap = new HashMap<>()
-    }
-
-    void populateListsMap() {
-
-        if (subclassListsMap.get(this.class.name) == null) {
-            subclassListsMap.put(this.class.name, new HashMap<String, List<BoardEntity>>())
-
-            for (Field field : this.getClass().getDeclaredFields()) {
-
-                if (List.class.isAssignableFrom(field.type)) {
-
-                    Class clazz = ((ParameterizedType)field.genericType).actualTypeArguments[0]
-                    if (BoardEntity.isAssignableFrom(clazz)) {
-                        field.setAccessible(true)
-                        subclassListsMap.get(this.class.name).put(clazz.name, field.get(this))
-                    }
-                }
-            }
-
-            println "subclassListsMap for class '${this.class.simpleName}': ${subclassListsMap}"
-        }
+        QueryForClassImpl.populateListsMap(this)
     }
 
     @Override
@@ -95,7 +74,7 @@ abstract class BoardEntity implements Associable, InitializableToEmpty, Queryabl
 
         println "querying entity of class '${this.class.simpleName}' for ${clazz.simpleName}"
         List<BoardEntity> results = new ArrayList<>()
-        List<BoardEntity> list = subclassListsMap.get(this.class.name).get(clazz.name)
+        List<BoardEntity> list = QueryForClassImpl.getList(this.class.name, clazz.name)
 
         if (list == null)
             throw new QueryException("Error querying for class name: ${clazz.name}")
@@ -112,5 +91,66 @@ abstract class BoardEntity implements Associable, InitializableToEmpty, Queryabl
 
         println "queryForClass returned ${results.size()} results: ${results}"
         return results
+    }
+
+    static class QueryForClassImpl {
+
+        private static Map<String, Map<String, List<BoardEntity>>> subclassListsMap
+
+        private QueryForClassImpl() {}
+
+        static Map<String, Map<String, List<BoardEntity>>> getSubclassListsMap() {
+            if (subclassListsMap == null)
+                subclassListsMap = new HashMap<>()
+            return subclassListsMap
+        }
+
+        static void addList(String subclassName, String listClassName, List<BoardEntity> list) {
+            if (getMapForSubclass(subclassName) == null) {
+                addSubclass(subclassName)
+            }
+
+            getSubclassListsMap().get(subclassName).put(listClassName, list)
+        }
+
+        static List<BoardEntity> getList(String subclassName, String listClassName) {
+            return getSubclassListsMap().get(subclassName).get(listClassName)
+        }
+
+        static void addSubclass(String subclassName) {
+            if (getSubclassListsMap().get(subclassName) == null)
+                getSubclassListsMap().put(subclassName, new HashMap<String, List<BoardEntity>>())
+        }
+
+        static Map<String, List<BoardEntity>> getMapForSubclass(String subclassName) {
+            return getSubclassListsMap().get(subclassName)
+        }
+
+        static void populateListsMap(BoardEntity root) {
+
+//            println "populating ListsMap for root: '${root.class.simpleName}'"
+
+
+            for (Field field : root.getClass().getDeclaredFields()) {
+
+                // to qualify, the field must by of class List<>
+                // and must have type parameter <BoardEntity>
+                if (List.class.isAssignableFrom(field.type)) {
+                    Class clazz = ((ParameterizedType)field.genericType).actualTypeArguments[0]
+                    if (BoardEntity.isAssignableFrom(clazz)) {
+                        field.setAccessible(true)
+                        addList(root.class.name, clazz.name, field.get(root))
+                    }
+                }
+            }
+
+//            println "subclassListsMap for class '${root.class.simpleName}': ${getSubclassListsMap()}"
+
+        }
+    }
+
+    static void associate(BoardEntity entity1, BoardEntity entity2) {
+        entity1.associate(entity2)
+        entity2.associate(entity1)
     }
 }
