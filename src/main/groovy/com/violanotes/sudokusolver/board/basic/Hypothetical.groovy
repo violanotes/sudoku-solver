@@ -1,18 +1,22 @@
-package com.violanotes.sudokusolver.board
+package com.violanotes.sudokusolver.board.basic
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonProperty
+import com.violanotes.sudokusolver.board.entity.BoardEntity
 import com.violanotes.sudokusolver.exceptions.AssociationException
+import com.violanotes.sudokusolver.exceptions.QueryException
+import groovy.transform.InheritConstructors
 
 /**
  * Created by pc on 7/20/2017.
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
+@InheritConstructors
 class Hypothetical extends BoardEntity {
 
-    private Integer number
-    private HypotheticalState state
-    private Square square
+    Integer number
+    HypotheticalState state
+    Square square
 
     enum HypotheticalState {
         @JsonProperty("available") AVAILABLE,
@@ -21,9 +25,7 @@ class Hypothetical extends BoardEntity {
     }
 
     @Override
-    void initializeToEmpty() {
-
-    }
+    void initializeToEmpty() {}
 
     @Override
     void associate(BoardEntity entity) throws AssociationException {
@@ -36,28 +38,10 @@ class Hypothetical extends BoardEntity {
         }
     }
 
-    Integer getNumber() {
-        return number
-    }
 
-    void setNumber(Integer number) {
-        this.number = number
-    }
-
-    HypotheticalState getState() {
-        return state
-    }
-
-    void setState(HypotheticalState state) {
-        this.state = state
-    }
-
-    Square getSquare() {
-        return square
-    }
-
-    void setSquare(Square square) {
-        this.square = square
+    @Override
+    BoardEntity[] queryForClass(Class<BoardEntity> clazz, Closure<Boolean> condition) throws QueryException {
+        return null
     }
 
     @Override

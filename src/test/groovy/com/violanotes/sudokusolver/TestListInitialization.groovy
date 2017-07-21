@@ -1,6 +1,6 @@
 package com.violanotes.sudokusolver
 
-import com.violanotes.sudokusolver.board.BoardState
+import com.violanotes.sudokusolver.board.basic.BoardState
 import org.junit.Test
 
 import static org.junit.Assert.assertNotNull

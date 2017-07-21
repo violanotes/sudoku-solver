@@ -1,4 +1,4 @@
-package com.violanotes.sudokusolver.board
+package com.violanotes.sudokusolver.board.entity
 
 import com.violanotes.sudokusolver.exceptions.AssociationException
 

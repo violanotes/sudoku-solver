@@ -1,30 +1,32 @@
-package com.violanotes.sudokusolver.board
+package com.violanotes.sudokusolver.board.basic
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.violanotes.sudokusolver.board.associative.Box
+import com.violanotes.sudokusolver.board.associative.BoxColumn
+import com.violanotes.sudokusolver.board.associative.BoxRow
+import com.violanotes.sudokusolver.board.associative.Column
+import com.violanotes.sudokusolver.board.associative.Row
+import com.violanotes.sudokusolver.board.entity.BoardEntity
 import com.violanotes.sudokusolver.exceptions.AssociationException
 import com.violanotes.sudokusolver.exceptions.BoardEntityException
+import com.violanotes.sudokusolver.exceptions.QueryException
+import groovy.transform.InheritConstructors
 
 /**
  * Created by pc on 7/20/2017.
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
+@InheritConstructors
 class BoardState extends BoardEntity {
-    private List<Square> squares
-    private Integer sequence
+    List<Square> squares
+    Integer sequence
 
-    private List<Row> rows
-    private List<Column> columns
-    private List<Box> boxes
-    private List<BoxRow> boxRows
-    private List<BoxColumn> boxColumns
-
-    BoardState() {}
-
-    BoardState(Closure<Void> closure) {
-        super(closure)
-    }
-
+    List<Row> rows
+    List<Column> columns
+    List<Box> boxes
+    List<BoxRow> boxRows
+    List<BoxColumn> boxColumns
 
     @Override
     void initializeToEmpty() {
@@ -38,10 +40,10 @@ class BoardState extends BoardEntity {
 
     static BoardState create(String json) throws BoardEntityException {
         try {
-            BoardState boardState = new ObjectMapper().readValue(json, BoardState.class)
+            BoardState boardState = new ObjectMapper().readValue(json, BoardState)
 
             // now set up the board
-            setupBoardState()
+            performBoardAssociations()
 
             return boardState
         } catch (IOException e) {
@@ -51,9 +53,10 @@ class BoardState extends BoardEntity {
 
     static BoardState createBasic(String json) throws BoardEntityException {
         try {
-            List<Integer> numbers = Arrays.asList(new ObjectMapper().readValue(json, Integer[].class))
+            // turn the json into a list of numbers
+            List<Integer> numbers = Arrays.asList(new ObjectMapper().readValue(json, Integer[]))
 
-
+            // make sure there are exactly 81 numbers
             if (numbers.size() != 81) {
                 throw new BoardEntityException("${numbers.size()} numbers provided.  Should be 81.")
             }
@@ -61,17 +64,18 @@ class BoardState extends BoardEntity {
             // create 81 squares with the specified numbers
             // and default hypotheticals
 
-            BoardState boardState = newEmpty(BoardState)
+            BoardState boardState = new BoardState(true)
 
-            (1..81).each {
+            (0..80).each {
                 // create the square and associate it to the board
-                Square square = newEmpty(Square)
+                Square square = new Square(true)
                 square.associate(boardState)
-                square.number = numbers[it - 1]
+                square.index = it
+                square.number = numbers[it]
 
                 (1..9).each {
                     // create the hypothetical and associate it with the square
-                    Hypothetical hypothetical = newEmpty(Hypothetical)
+                    Hypothetical hypothetical = new Hypothetical(true)
                     hypothetical.associate(square)
                     hypothetical.number = it
                 }
@@ -79,18 +83,17 @@ class BoardState extends BoardEntity {
 
             return boardState
 
-
         } catch (IOException e) {
             throw new BoardEntityException(e)
         }
     }
 
-    private static void setupBoardState() throws BoardEntityException {
-
-
+    private static void performBoardAssociations() throws BoardEntityException {
 
         // create 9 Rows
-
+        (0..8).each {
+            Row row = new Row()
+        }
 
         // create 9 Columns
 
@@ -113,67 +116,11 @@ class BoardState extends BoardEntity {
 
     @Override
     void associate(BoardEntity entity) {
-        switch(entity) {
-            case (entity instanceof Square) : getSequence()
+        switch(entity.class) {
+            case (Square) : getSequence()
                 break
             default: throw new AssociationException(entity, this)
         }
-    }
-
-    List<Square> getSquares() {
-        return squares
-    }
-
-    void setSquares(List<Square> squares) {
-        this.squares = squares
-    }
-
-    Integer getSequence() {
-        return sequence
-    }
-
-    void setSequence(Integer sequence) {
-        this.sequence = sequence
-    }
-
-    List<Row> getRows() {
-        return rows
-    }
-
-    void setRows(List<Row> rows) {
-        this.rows = rows
-    }
-
-    List<Column> getColumns() {
-        return columns
-    }
-
-    void setColumns(List<Column> columns) {
-        this.columns = columns
-    }
-
-    List<Box> getBoxes() {
-        return boxes
-    }
-
-    void setBoxes(List<Box> boxes) {
-        this.boxes = boxes
-    }
-
-    List<BoxRow> getBoxRows() {
-        return boxRows
-    }
-
-    void setBoxRows(List<BoxRow> boxRows) {
-        this.boxRows = boxRows
-    }
-
-    List<BoxColumn> getBoxColumns() {
-        return boxColumns
-    }
-
-    void setBoxColumns(List<BoxColumn> boxColumns) {
-        this.boxColumns = boxColumns
     }
 
     @Override
