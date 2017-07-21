@@ -1,6 +1,8 @@
 package com.violanotes.sudokusolver.board.supplemental
 
+import com.fasterxml.jackson.annotation.JsonIgnore
 import com.violanotes.sudokusolver.board.basic.BoardState
+import com.violanotes.sudokusolver.board.basic.Square
 import com.violanotes.sudokusolver.board.entity.BoardEntity
 import com.violanotes.sudokusolver.exceptions.AssociationException
 import groovy.transform.InheritConstructors
@@ -10,20 +12,24 @@ import groovy.transform.InheritConstructors
  */
 @InheritConstructors
 class BoxColumn extends BoardEntity {
-    private List<Box> boxes
-    private List<Column> columns
-    private Integer index
+    @JsonIgnore List<Box> boxes
+    @JsonIgnore List<Column> columns
+    @JsonIgnore List<Square> squares
+    Integer index
 
     @Override
     void initializeToEmpty() {
         boxes = new ArrayList<>()
         columns = new ArrayList<>()
+        squares = new ArrayList<>()
     }
 
     @Override
     void associate(BoardEntity entity) throws AssociationException {
         switch (entity.class) {
-            case Box: boxes.add entity
+            case Box:
+                boxes.add entity
+                squares.addAll(((Box)entity).squares)
                 break
             case Column: columns.add entity
                 break

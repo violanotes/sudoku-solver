@@ -62,6 +62,8 @@ class Square extends BoardEntity {
                 ", row=" + row.index +
                 ", column=" + column.index +
                 ", box=" + box.index +
+                ", boxColumn=" + column.boxColumn.index +
+                ", boxRow=" + box.boxRow.index +
                 '}'
     }
 }

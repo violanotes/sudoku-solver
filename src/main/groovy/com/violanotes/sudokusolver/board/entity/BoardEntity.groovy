@@ -1,5 +1,6 @@
 package com.violanotes.sudokusolver.board.entity
 
+import com.fasterxml.jackson.annotation.JsonIgnore
 import com.violanotes.sudokusolver.board.basic.BoardState
 import com.violanotes.sudokusolver.exceptions.QueryException
 
@@ -14,6 +15,7 @@ abstract class BoardEntity implements Associable, InitializableToEmpty, Queryabl
     /**
      * all board entities should have a reference to the current board state
      */
+    @JsonIgnore
     BoardState boardState
 
     BoardEntity(boolean initializeToEmpty = false){

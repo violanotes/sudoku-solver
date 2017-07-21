@@ -1,5 +1,6 @@
 package com.violanotes.sudokusolver.board.supplemental
 
+import com.fasterxml.jackson.annotation.JsonIgnore
 import com.violanotes.sudokusolver.board.basic.BoardState
 import com.violanotes.sudokusolver.board.basic.Square
 import com.violanotes.sudokusolver.board.entity.BoardEntity
@@ -11,7 +12,7 @@ import groovy.transform.InheritConstructors
  */
 @InheritConstructors
 class Row extends BoardEntity {
-    List<Square> squares
+    @JsonIgnore List<Square> squares
     BoxRow boxRow
     Integer index
 

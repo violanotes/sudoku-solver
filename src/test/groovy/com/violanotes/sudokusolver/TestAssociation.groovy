@@ -87,10 +87,12 @@ class TestAssociation {
 
     @Test
     void columnsToBoxColumns() {
+        int boxColumnIndex = 0
         0.step 9, 3, {
             (0..2).each {i ->
-                assertEquals("column: ${it + i} i: $i", i, boardState.squares[it + i].column.index)
+                assertEquals("column: ${it + i} i: $i", boxColumnIndex, boardState.columns[it + i].boxColumn.index)
             }
+            boxColumnIndex++
         }
     }
 }

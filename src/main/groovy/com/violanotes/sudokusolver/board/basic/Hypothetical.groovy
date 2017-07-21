@@ -1,5 +1,6 @@
 package com.violanotes.sudokusolver.board.basic
 
+import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.violanotes.sudokusolver.board.entity.BoardEntity
@@ -15,7 +16,7 @@ class Hypothetical extends BoardEntity {
 
     Integer number
     HypotheticalState state
-    Square square
+    @JsonIgnore Square square
 
     enum HypotheticalState {
         @JsonProperty("available") AVAILABLE,

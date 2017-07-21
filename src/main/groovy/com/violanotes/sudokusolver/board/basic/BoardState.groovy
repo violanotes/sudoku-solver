@@ -155,7 +155,7 @@ class BoardState extends BoardEntity {
             associate(boxes[it], boxColumns[it % 3])
 
             associate(rows[it], boxRows[it.intdiv(3)])
-            associate(columns[it], boxColumns[it % 3])
+            associate(columns[it], boxColumns[it.intdiv(3)])
         }
 
 
