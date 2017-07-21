@@ -2,14 +2,17 @@ package com.violanotes.sudokusolver.board.basic
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.violanotes.sudokusolver.board.supplemental.Box
+import com.violanotes.sudokusolver.board.supplemental.Box2
 import com.violanotes.sudokusolver.board.supplemental.BoxColumn
 import com.violanotes.sudokusolver.board.supplemental.BoxRow
 import com.violanotes.sudokusolver.board.supplemental.Column
 import com.violanotes.sudokusolver.board.supplemental.Row
+import com.violanotes.sudokusolver.board.basic.Hypothetical.HypotheticalState
+import com.violanotes.sudokusolver.board.basic.Square.SquareState
 import com.violanotes.sudokusolver.board.entity.BoardEntity
 import com.violanotes.sudokusolver.exceptions.AssociationException
 import com.violanotes.sudokusolver.exceptions.BoardEntityException
+import com.violanotes.sudokusolver.exceptions.BoardStateValidationException
 import groovy.transform.InheritConstructors
 
 /**
@@ -23,7 +26,7 @@ class BoardState extends BoardEntity {
     List<Square> squares
     List<Row> rows
     List<Column> columns
-    List<Box> boxes
+    List<Box2> boxes
     List<BoxRow> boxRows
     List<BoxColumn> boxColumns
 
@@ -46,7 +49,7 @@ class BoardState extends BoardEntity {
                 break
             case Column: columns.add entity
                 break
-            case Box: boxes.add entity
+            case Box2: boxes.add entity
                 break
             case BoxRow: boxRows.add entity
                 break
@@ -69,6 +72,105 @@ class BoardState extends BoardEntity {
         } catch (IOException e) {
             throw new BoardEntityException(e)
         }
+    }
+
+    void validate() throws BoardStateValidationException {
+        // enforce:
+        // 1 filled-in hypothetical per square
+        // 1 of each filled-in number per
+            // row
+            // column
+            // box
+        // all available squares have at least one available hypothetical
+        // that is not already filled in in the square's
+            // row
+            // column
+            // box
+
+        for (Square square : squares) {
+            int filledInCount = 0  // max should be 1
+            int availableCount = 0 // should be more than 0 if filledIn is 0
+            int eliminatedCount = 0
+
+            if (square.hypotheticals.size() != 9) {
+                throw new BoardStateValidationException(
+                        "Square $square.index should have 9 hypotheticals, but has ${square.hypotheticals.size()}", this)
+            }
+
+            for (Hypothetical hypothetical : square.hypotheticals) {
+                switch (hypothetical.state) {
+                    case HypotheticalState.FILLED:
+                        filledInCount++
+                        break
+                    case HypotheticalState.AVAILABLE:
+                        availableCount++
+                        break
+                    case HypotheticalState.ELIMINATED:
+                        eliminatedCount++
+                        break
+                    default:
+                        throw new BoardStateValidationException("Unacceptable HypotheticalState '$hypothetical.state'", this)
+                }
+            }
+
+            if (filledInCount > 1) {
+                throw new BoardStateValidationException(
+                        "Square $square.index should have no more than 1 fille-in hypothetical, but has $filledInCount", this)
+            }
+
+            if (filledInCount == 1) {
+                if (availableCount == 0) {
+                    throw new BoardStateValidationException(
+                            "Square $square.index should have at least 1 available hypothetical, but has $availableCount", this)
+                }
+            }
+        }
+
+        for (Row row : rows) {
+            List<Integer> filledIn = new ArrayList<>()
+
+            for (Square square : row.squares) {
+                if (square.state == SquareState.FILLED) {
+                    if (!filledIn.contains(square.number)) {
+                        filledIn.add(square.number)
+                    } else {
+                        throw new BoardStateValidationException(
+                                "Row $row.index should have only one square filled in with number $square.number, but has more than one", this)
+                    }
+                }
+            }
+        }
+
+        for (Column column : columns) {
+            List<Integer> filledIn = new ArrayList<>()
+
+            for (Square square : column.squares) {
+                if (square.state == SquareState.FILLED) {
+                    if (!filledIn.contains(square.number)) {
+                        filledIn.add(square.number)
+                    } else {
+                        throw new BoardStateValidationException(
+                                "Column $column.index should have only one square filled in with number $square.number, but has more than one", this)
+                    }
+                }
+            }
+        }
+
+        for (Box2 box : boxes) {
+            List<Integer> filledIn = new ArrayList<>()
+
+            for (Square square : box.squares) {
+                if (square.state == SquareState.FILLED) {
+                    if (!filledIn.contains(square.number)) {
+                        filledIn.add(square.number)
+                    } else {
+                        throw new BoardStateValidationException(
+                                "Box2 $box.index should have only one square filled in with number $square.number, but has more than one", this)
+                    }
+                }
+            }
+        }
+
     }
 
     static BoardState createBasic(String json) throws BoardEntityException {
@@ -128,7 +230,7 @@ class BoardState extends BoardEntity {
 
         // create 9 Boxes
         (0..8).each {
-            Box box = new Box(true)
+            Box2 box = new Box2(true)
             box.index = it
             associate(box, this)
         }
@@ -173,6 +275,10 @@ class BoardState extends BoardEntity {
 
             associate(squares[it], boxes[(3 * boxRow) + boxColumn])
         }
+    }
+
+    String json() {
+        return new ObjectMapper().writeValueAsString(this)
     }
 
     @Override

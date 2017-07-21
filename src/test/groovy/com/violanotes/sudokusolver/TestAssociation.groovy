@@ -2,11 +2,10 @@ package com.violanotes.sudokusolver
 
 import com.violanotes.sudokusolver.board.basic.BoardState
 import com.violanotes.sudokusolver.board.basic.Square
-import com.violanotes.sudokusolver.exceptions.QueryException
 import org.junit.Before
 import org.junit.Test
 
-import static com.violanotes.sudokusolver.TestUtils.getJson
+import static TestUtils.getJson
 import static org.junit.Assert.*
 
 /**

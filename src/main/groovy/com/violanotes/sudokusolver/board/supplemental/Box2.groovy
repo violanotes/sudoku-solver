@@ -11,7 +11,7 @@ import groovy.transform.InheritConstructors
  * Created by pc on 7/20/2017.
  */
 @InheritConstructors
-class Box extends BoardEntity {
+class Box2 extends BoardEntity {
     @JsonIgnore List<Square> squares
     BoxRow boxRow
     BoxColumn boxColumn

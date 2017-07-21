@@ -2,7 +2,8 @@ package com.violanotes.sudokusolver.board.basic
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonProperty
-import com.violanotes.sudokusolver.board.supplemental.Box
+import com.violanotes.sudokusolver.board.entity.State
+import com.violanotes.sudokusolver.board.supplemental.Box2
 import com.violanotes.sudokusolver.board.supplemental.Column
 import com.violanotes.sudokusolver.board.supplemental.Row
 import com.violanotes.sudokusolver.board.entity.BoardEntity
@@ -22,7 +23,7 @@ class Square extends BoardEntity {
 
     Row row
     Column column
-    Box box
+    Box2 box
 
     enum SquareState {
         @JsonProperty("available") AVAILABLE,
@@ -32,6 +33,16 @@ class Square extends BoardEntity {
     @Override
     void initializeToEmpty() {
         hypotheticals = []
+    }
+
+//    @Override
+    void setInitialState() {
+        state = SquareState.AVAILABLE
+    }
+
+//    @Override
+    void changeState(State newState) {
+        println "changing state to: ${newState.getState().class.simpleName} : ${newState.getState()}"
     }
 
     @Override
@@ -45,7 +56,7 @@ class Square extends BoardEntity {
                 break
             case Column: column = entity
                 break
-            case Box: box = entity
+            case Box2: box = entity
                 break
             default:
                 throw new AssociationException(entity, this)

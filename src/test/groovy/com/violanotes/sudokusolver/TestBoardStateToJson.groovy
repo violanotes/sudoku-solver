@@ -4,13 +4,13 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.violanotes.sudokusolver.board.basic.BoardState
 import org.junit.Test
 
-import static com.violanotes.sudokusolver.TestUtils.getJson
+import static TestUtils.getJson
 import static org.junit.Assert.*
 
 /**
  * Created by pc on 7/20/2017.
  */
-class TestBoardStateToJson2 {
+class TestBoardStateToJson {
 
     @Test
     void getJsonFromResourceFileGroovy() throws Exception {
@@ -44,9 +44,11 @@ class TestBoardStateToJson2 {
     @Test
     void buildJsonFromBoardState() throws Exception {
         BoardState boardState = BoardState.createBasic(getJson("/boardStateSimple.json"))
-        String json = new ObjectMapper().writeValueAsString(boardState)
+        String json = boardState.json()
 
-        println "boardState: $json"
+        assertTrue(json.startsWith("{"))
+
+        println "boardState json: $json"
     }
 
 

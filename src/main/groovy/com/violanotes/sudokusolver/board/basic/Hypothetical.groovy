@@ -4,7 +4,10 @@ import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.violanotes.sudokusolver.board.entity.BoardEntity
+import com.violanotes.sudokusolver.board.entity.State
+import com.violanotes.sudokusolver.board.entity.StatefulBoardEntity
 import com.violanotes.sudokusolver.exceptions.AssociationException
+import com.violanotes.sudokusolver.exceptions.BoardStateValidationException
 import groovy.transform.InheritConstructors
 
 /**
@@ -18,14 +21,55 @@ class Hypothetical extends BoardEntity {
     HypotheticalState state
     @JsonIgnore Square square
 
-    enum HypotheticalState {
+    enum HypotheticalState implements State {
         @JsonProperty("available") AVAILABLE,
         @JsonProperty("eliminated") ELIMINATED,
         @JsonProperty("filled") FILLED
+
+        @Override
+        getState() {
+            return this
+        }
     }
 
     @Override
-    void initializeToEmpty() {}
+    void initializeToEmpty() {
+
+    }
+
+//    @Override
+    void setInitialState() {
+        state = HypotheticalState.AVAILABLE
+    }
+
+//    @Override
+    void changeState(State newState) {
+
+        println "changing state to: ${newState.getState().class.simpleName} : ${newState.getState()}"
+        println "previous state: ${state}"
+
+
+        if (!(newState.getState() instanceof HypotheticalState)) {
+            throw new BoardStateValidationException("State of type '${newState.getState().class.simpleName}' not a valid hypothetical state")
+        }
+
+        switch (newState.getState()) {
+            case HypotheticalState.AVAILABLE:
+                if (!(state == null || state == HypotheticalState.AVAILABLE)) {
+                    throw new BoardStateValidationException("Hypothetical state may only be changed to AVAILABLE from NULL")
+                }
+                break
+            case HypotheticalState.ELIMINATED:
+                if (!(state == null || state == HypotheticalState.AVAILABLE)) {
+                    throw new BoardStateValidationException("Hypothetical state may only be changed to ELIMINATED from AVAILABLE or NULL")
+                }
+                break
+            case HypotheticalState.FILLED:
+                if (!(state == null || state == HypotheticalState.FILLED)) {
+                    throw new BoardStateValidationException("Hypothetical state may only be changed to ELIMINATED from AVAILABLE or NULL")
+                }
+        }
+    }
 
     @Override
     void associate(BoardEntity entity) throws AssociationException {

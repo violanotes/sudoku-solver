@@ -13,7 +13,7 @@ import groovy.transform.InheritConstructors
  */
 @InheritConstructors
 class BoxRow extends BoardEntity {
-    @JsonIgnore List<Box> boxes
+    @JsonIgnore List<Box2> boxes
     @JsonIgnore List<Row> rows
     @JsonIgnore List<Square> squares
     Integer index
@@ -28,8 +28,8 @@ class BoxRow extends BoardEntity {
     @Override
     void associate(BoardEntity entity) throws AssociationException {
         switch (entity.class) {
-            case Box: boxes.add entity
-                squares.addAll(((Box)entity).squares)
+            case Box2: boxes.add entity
+                squares.addAll(((Box2)entity).squares)
                 break
             case Row: rows.add entity
                 break
