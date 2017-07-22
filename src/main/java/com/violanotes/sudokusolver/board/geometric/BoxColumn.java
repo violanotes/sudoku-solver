@@ -62,6 +62,12 @@ public class BoxColumn extends BoardEntity {
         }
     }
 
+
+    @Override
+    public String getId() {
+        return "BoxColumn " + index;
+    }
+
     public List<Box> getBoxes() {
         return boxes;
     }

@@ -253,6 +253,11 @@ public class BoardState extends BoardEntity {
     }
 
     @Override
+    public String getId() {
+        return "BoardState";
+    }
+
+    @Override
     public String toString() {
         return "BoardState{" + "squares=" + squares + ", sequence=" + sequence + "}";
     }

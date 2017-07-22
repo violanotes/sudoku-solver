@@ -14,7 +14,7 @@ import com.violanotes.sudokusolver.move.Move;
  * Created by pc on 7/20/2017.
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class Hypothetical extends StatefulBoardEntity<Move> implements HasAddress {
+public class Hypothetical extends StatefulBoardEntity<Move> {
 
     private Integer number;
     private HypotheticalState state;
@@ -51,8 +51,7 @@ public class Hypothetical extends StatefulBoardEntity<Move> implements HasAddres
     }
 
     @Override
-    public void doChangeState(final State newState, Move...moves) throws BoardEntityStateChangeException {
-
+    public void validateStateChange(State newState, Move... moves) throws BoardEntityStateChangeException {
         // verify the move
         if (moves.length == 0 || moves.length > 1) {
             throw new BoardEntityStateChangeException("Exactly one move should accompany this state change, but there were " + moves.length);
@@ -64,8 +63,12 @@ public class Hypothetical extends StatefulBoardEntity<Move> implements HasAddres
 
         if (moves[0].getHypothetical() != this) {
             throw new BoardEntityStateChangeException("The accompanying move to this state change should refer to this hypothetical: " +
-                    address() + ", but instead referred to: " + moves[0].getHypothetical().address());
+                    id() + ", but instead referred to: " + moves[0].getHypothetical().id());
         }
+    }
+
+    @Override
+    public void doChangeState(final State newState, Move...moves) throws BoardEntityStateChangeException {
 
         System.out.println("changing state to: " + newState.getState().getClass().getSimpleName() + " : " + newState.getState());
         System.out.println("previous state: " + state);
@@ -113,8 +116,8 @@ public class Hypothetical extends StatefulBoardEntity<Move> implements HasAddres
     }
 
     @Override
-    public String getAddress() {
-        String address = "Hypothetical @ square:";
+    public String getId() {
+        String address = "Hypothetical @ square: ";
         if (square == null) {
             address += null + " ";
         } else {

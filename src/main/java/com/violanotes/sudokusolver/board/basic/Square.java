@@ -19,7 +19,7 @@ import java.util.List;
  * Created by pc on 7/20/2017.
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class Square extends StatefulBoardEntity<Move> implements HasAddress {
+public class Square extends StatefulBoardEntity<Move> {
 
     private List<Hypothetical> hypotheticals;
     private Integer index;
@@ -138,7 +138,7 @@ public class Square extends StatefulBoardEntity<Move> implements HasAddress {
     }
 
     @Override
-    public String getAddress() {
+    public String getId() {
         return "Square @ " + getIndex();
     }
 

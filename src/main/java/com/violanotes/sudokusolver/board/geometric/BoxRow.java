@@ -51,6 +51,11 @@ public class BoxRow extends BoardEntity {
         }
     }
 
+    @Override
+    public String getId() {
+        return "BoxRow " + index;
+    }
+
     public List<Box> getBoxes() {
         return boxes;
     }

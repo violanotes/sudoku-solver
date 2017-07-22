@@ -9,6 +9,7 @@ import com.violanotes.sudokusolver.board.entity.BoardEntity;
 import com.violanotes.sudokusolver.exceptions.AssociationException;
 import com.violanotes.sudokusolver.exceptions.BoardEntityException;
 import com.violanotes.sudokusolver.exceptions.BoardEntityValidationException;
+import com.violanotes.sudokusolver.exceptions.QueryException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -33,18 +34,19 @@ public class Column extends BoardEntity {
 
     @Override
     public void doValidate() throws BoardEntityValidationException {
-        List<Integer> filledIn = new ArrayList<>();
+        try {
+            for (int i = 1; i < 10; i++) {
+                List<Square> squares = this.queryForClass(Square.class, (Square square, Object[] args) ->
+                        square.getNumber() == args[0]
+                , i);
 
-        for (Square square : squares) {
-            if (square.getState() == SquareState.FILLED) {
-                if (filledIn.contains(square.getNumber())) {
+                if (squares.size() > 1)
                     throw new BoardEntityValidationException("Column " + index +
                             " should have only one square filled in with number " +
-                            square.getNumber() + ", but has more than one");
-                } else {
-                    filledIn.add(square.getNumber());
-                }
+                            i + ", but has " + squares.size());
             }
+        } catch (QueryException e) {
+            throw new BoardEntityValidationException(e);
         }
     }
 
@@ -59,6 +61,12 @@ public class Column extends BoardEntity {
         } else {
             throw new AssociationException(entity, this);
         }
+    }
+
+
+    @Override
+    public String getId() {
+        return "BoxColumn " + index;
     }
 
     public List<Square> getSquares() {

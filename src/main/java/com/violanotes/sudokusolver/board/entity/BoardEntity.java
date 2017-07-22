@@ -21,7 +21,8 @@ public abstract class BoardEntity implements
         Associable<BoardEntity>,
         InitializableToEmpty,
         Queryable<BoardEntity>,
-        Validatable {
+        Validatable,
+        Identifiable {
 
     /**
      * all board entities should have a reference to the current board state
@@ -42,7 +43,7 @@ public abstract class BoardEntity implements
     }
 
     @Override
-    public <Q extends BoardEntity> Q queryForSingle(final Class<Q> clazz, Condition<Q> condition, Object...args) throws QueryException {
+    public <Q extends BoardEntity> Q queryForSingle(Class<Q> clazz, Condition<Q> condition, Object...args) throws QueryException {
         List<Q> results = this.queryForClass(clazz, condition, args);
 
         if (results != null && results.size() == 1) {
@@ -191,7 +192,7 @@ public abstract class BoardEntity implements
 
         public static void populateListsMap(BoardEntity entity) throws BoardEntityException {
 
-            System.out.println("populating ListsMap for entity: " + entity.getClass().getSimpleName() + "'");
+//            System.out.println("populating ListsMap for entity: " + entity.getClass().getSimpleName() + "'");
 
             for (Field field : entity.getClass().getDeclaredFields()) {
 
@@ -215,7 +216,7 @@ public abstract class BoardEntity implements
                 }
             }
 
-            System.out.println("listMap for class '" + entity.getClass().getName() + "':" + getListMap(entity));
+//            System.out.println("listMap for class '" + entity.getClass().getName() + "':" + getListMap(entity));
         }
 
         public static void setInstances(Map<BoardEntity, QueryForClassImpl> instances) {
