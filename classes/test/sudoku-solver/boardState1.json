@@ -1,0 +1,19 @@
+{
+  "sequence" : 0,
+  "squares": [
+    {
+      "state" : "filled",
+      "index" : 4,
+      "hypotheticals" : [
+        {
+          "number" : 1,
+          "state" : "eliminated"
+        },
+        {
+          "number" : 2,
+          "state" : "eliminated"
+        }
+      ]
+    }
+  ]
+}
