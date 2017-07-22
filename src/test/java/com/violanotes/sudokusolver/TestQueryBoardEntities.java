@@ -4,6 +4,7 @@ import com.violanotes.sudokusolver.board.basic.BoardState;
 import com.violanotes.sudokusolver.board.basic.Square;
 import com.violanotes.sudokusolver.board.entity.BoardEntity;
 import com.violanotes.sudokusolver.exceptions.QueryException;
+import javafx.beans.property.ObjectProperty;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -41,7 +42,7 @@ public class TestQueryBoardEntities {
         // try to queryForClass single for all getSquares().  It should throw an exception
 
         try {
-            Square result = boardState.queryForSingle(Square.class, (Square square) ->
+            Square result = boardState.queryForSingle(Square.class, (Square square, Object[] args) ->
                 square.getNumber() == 9
             );
             System.out.println(result);
@@ -55,7 +56,7 @@ public class TestQueryBoardEntities {
     @Test
 	public void testQueryForSingle_WithOneResult_Success() throws Exception {
 
-        Square result = boardState.queryForSingle(Square.class, (Square square) ->
+        Square result = boardState.queryForSingle(Square.class, (Square square, Object[] args) ->
                 square.getIndex() == 4
         );
 
@@ -67,7 +68,7 @@ public class TestQueryBoardEntities {
 	public void testQueryForMultiple_WithOneResults_ThrowsException() throws Exception {
 
         try {
-            List<Square> results = boardState.queryForMultiple(Square.class, (Square square) ->
+            List<Square> results = boardState.queryForMultiple(Square.class, (Square square, Object[] args) ->
                     square.getIndex() == 4
             );
             System.out.println(results);
@@ -81,7 +82,7 @@ public class TestQueryBoardEntities {
     @Test
 	public void testQueryForMultiple_WithMultipleResults_Success() throws Exception {
 
-        List<Square> results = boardState.queryForMultiple(Square.class, (Square square) ->
+        List<Square> results = boardState.queryForMultiple(Square.class, (Square square, Object[] args) ->
             square.getNumber() == 8
         );
         System.out.println(results);
@@ -94,7 +95,7 @@ public class TestQueryBoardEntities {
 	public void testQueryForMultiple_ExpectCount_WithOneResults_ThrowsException() throws Exception {
 
         try {
-            List<Square> results = boardState.queryForMultiple(Square.class, 9, (Square square) ->
+            List<Square> results = boardState.queryForMultiple(Square.class, 9, (Square square, Object[] args) ->
                 square.getIndex() == 4
             );
             System.out.println(results);
@@ -108,7 +109,7 @@ public class TestQueryBoardEntities {
     @Test
 	public void testQueryForMultiple_ExpectCount_ReceiveCount_Success() throws Exception {
 
-        List<Square> results = boardState.queryForMultiple(Square.class, 9, (Square square) ->
+        List<Square> results = boardState.queryForMultiple(Square.class, 9, (Square square, Object[] args) ->
             square.getNumber() == 8
         );
         System.out.println(results);
@@ -121,7 +122,7 @@ public class TestQueryBoardEntities {
 	public void testQueryForNoResults_WithOneResults_ThrowsException() throws Exception {
 
         try {
-            Square results = boardState.queryForNone(Square.class, (Square square) ->
+            Square results = boardState.queryForNone(Square.class, (Square square, Object[] args) ->
                 square.getIndex() == 4
             );
             System.out.println(results);
@@ -135,7 +136,7 @@ public class TestQueryBoardEntities {
     @Test
 	public void testQueryForNone_WithNoResults_Success() throws Exception {
 
-        Square results = boardState.queryForNone(Square.class, (Square square) ->
+        Square results = boardState.queryForNone(Square.class, (Square square, Object[] args) ->
             square.getNumber() == 25
         );
         System.out.println(results);

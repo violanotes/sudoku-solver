@@ -1,11 +1,13 @@
-package com.violanotes.sudokusolver.board.supplemental;
+package com.violanotes.sudokusolver.board.geometric;
 
 import com.violanotes.sudokusolver.board.basic.BoardState;
 import com.violanotes.sudokusolver.board.basic.Square;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.violanotes.sudokusolver.board.entity.Associable;
 import com.violanotes.sudokusolver.board.entity.BoardEntity;
 import com.violanotes.sudokusolver.exceptions.AssociationException;
 import com.violanotes.sudokusolver.exceptions.BoardEntityException;
+import com.violanotes.sudokusolver.exceptions.BoardEntityValidationException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -13,30 +15,35 @@ import java.util.List;
 /**
  * Created by pc on 7/20/2017.
  */
-public class BoxColumn extends BoardEntity {
+public class BoxRow extends BoardEntity {
 
-
-    public BoxColumn(boolean initializeToEmpty) throws BoardEntityException {
+    public BoxRow(boolean initializeToEmpty) throws BoardEntityException {
         super(initializeToEmpty);
     }
 
-    public BoxColumn() throws BoardEntityException {
+    public BoxRow() throws BoardEntityException {
+        super();
     }
 
     @Override
     public void initializeToEmpty() {
         boxes = new ArrayList<Box>();
-        columns = new ArrayList<Column>();
+        rows = new ArrayList<Row>();
         squares = new ArrayList<Square>();
     }
 
     @Override
-    public void associate(BoardEntity entity) throws AssociationException {
+    public void doValidate() throws BoardEntityValidationException {
+
+    }
+
+    @Override
+    public void doAssociate(Associable<BoardEntity> entity) throws AssociationException {
         if (entity instanceof Box) {
             boxes.add((Box)entity);
             squares.addAll(((Box) entity).getSquares());
-        } else if (entity instanceof Column) {
-            columns.add((Column)entity);
+        } else if (entity instanceof Row) {
+            rows.add((Row)entity);
         } else if (entity instanceof BoardState) {
             boardState = ((BoardState) (entity));
         } else {
@@ -52,12 +59,12 @@ public class BoxColumn extends BoardEntity {
         this.boxes = boxes;
     }
 
-    public List<Column> getColumns() {
-        return columns;
+    public List<Row> getRows() {
+        return rows;
     }
 
-    public void setColumns(List<Column> columns) {
-        this.columns = columns;
+    public void setRows(List<Row> rows) {
+        this.rows = rows;
     }
 
     public List<Square> getSquares() {
@@ -79,7 +86,7 @@ public class BoxColumn extends BoardEntity {
     @JsonIgnore
     private List<Box> boxes;
     @JsonIgnore
-    private List<Column> columns;
+    private List<Row> rows;
     @JsonIgnore
     private List<Square> squares;
     private Integer index;

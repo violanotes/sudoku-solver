@@ -3,9 +3,8 @@ package com.violanotes.sudokusolver;
 import com.violanotes.sudokusolver.board.basic.BoardState;
 import com.violanotes.sudokusolver.board.basic.Hypothetical;
 import com.violanotes.sudokusolver.board.basic.Square;
-import com.violanotes.sudokusolver.exceptions.BoardStateValidationException;
-import org.codehaus.groovy.runtime.DefaultGroovyMethods;
-import org.junit.Assert;
+import com.violanotes.sudokusolver.exceptions.BoardEntityStateChangeException;
+import com.violanotes.sudokusolver.exceptions.BoardEntityValidationException;
 import org.junit.Test;
 
 import static com.violanotes.sudokusolver.TestUtils.getJson;
@@ -23,7 +22,7 @@ public class TestChangeState {
         try {
             boardState.getSquares().get(0).getHypotheticals().get(0).changeState(Hypothetical.HypotheticalState.AVAILABLE);
             fail("Exception should have been caught, but was not");
-        } catch (BoardStateValidationException e) {
+        } catch (BoardEntityStateChangeException e) {
             e.printStackTrace();
             System.out.println("Exception caught as intended.");
         }

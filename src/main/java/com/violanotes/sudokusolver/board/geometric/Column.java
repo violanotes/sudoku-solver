@@ -1,11 +1,14 @@
-package com.violanotes.sudokusolver.board.supplemental;
+package com.violanotes.sudokusolver.board.geometric;
 
 import com.violanotes.sudokusolver.board.basic.BoardState;
 import com.violanotes.sudokusolver.board.basic.Square;
+import com.violanotes.sudokusolver.board.basic.Square.SquareState;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.violanotes.sudokusolver.board.entity.Associable;
 import com.violanotes.sudokusolver.board.entity.BoardEntity;
 import com.violanotes.sudokusolver.exceptions.AssociationException;
 import com.violanotes.sudokusolver.exceptions.BoardEntityException;
+import com.violanotes.sudokusolver.exceptions.BoardEntityValidationException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -20,6 +23,7 @@ public class Column extends BoardEntity {
     }
 
     public Column() throws BoardEntityException {
+        super();
     }
 
     @Override
@@ -28,7 +32,24 @@ public class Column extends BoardEntity {
     }
 
     @Override
-    public void associate(BoardEntity entity) throws AssociationException {
+    public void doValidate() throws BoardEntityValidationException {
+        List<Integer> filledIn = new ArrayList<>();
+
+        for (Square square : squares) {
+            if (square.getState() == SquareState.FILLED) {
+                if (filledIn.contains(square.getNumber())) {
+                    throw new BoardEntityValidationException("Column " + index +
+                            " should have only one square filled in with number " +
+                            square.getNumber() + ", but has more than one");
+                } else {
+                    filledIn.add(square.getNumber());
+                }
+            }
+        }
+    }
+
+    @Override
+    public void doAssociate(Associable<BoardEntity> entity) throws AssociationException {
         if (entity instanceof Square) {
             squares.add((Square)entity);
         } else if (entity instanceof BoxColumn) {

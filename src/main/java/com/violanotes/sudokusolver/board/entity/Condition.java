@@ -7,5 +7,5 @@ import com.violanotes.sudokusolver.exceptions.QueryException;
  */
 @FunctionalInterface
 public interface Condition<T> {
-    boolean evaluate(T entity) throws QueryException;
+    boolean evaluate(T entity, Object[] args) throws QueryException;
 }

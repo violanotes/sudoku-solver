@@ -1,9 +1,7 @@
 package com.violanotes.sudokusolver;
 
 import com.violanotes.sudokusolver.board.basic.BoardState;
-import com.violanotes.sudokusolver.exceptions.BoardStateValidationException;
-import groovy.ui.SystemOutputInterceptor;
-import org.codehaus.groovy.runtime.DefaultGroovyMethods;
+import com.violanotes.sudokusolver.exceptions.BoardEntityValidationException;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -19,7 +17,7 @@ public class TestBoardStateValidation {
             boardState.validate();
             //TODO finish proper validation!
             Assert.fail("Exception should have been caught, but was not");
-        } catch (BoardStateValidationException e) {
+        } catch (BoardEntityValidationException e) {
             e.printStackTrace();
             System.out.println("Exception caught as intended.");
         }

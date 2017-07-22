@@ -5,12 +5,12 @@ import com.violanotes.sudokusolver.exceptions.AssociationException;
 /**
  * Created by pc on 7/20/2017.
  */
-public interface Associable<T> {
-    void associate(T entity) throws AssociationException;
+public interface Associable<T extends Associable<T>> {
+    default void associate(Associable<T> entity) throws AssociationException {
+        this.doAssociate(entity);
+        entity.doAssociate(this);
+    }
 
     @SuppressWarnings("unchecked")
-    static void associate(Associable entity1, Associable entity2) throws AssociationException {
-        entity1.associate(entity2);
-        entity2.associate(entity1);
-    }
+    void doAssociate(Associable<T> entity1) throws AssociationException;
 }

@@ -5,8 +5,10 @@ import com.violanotes.sudokusolver.board.basic.BoardState;
 import com.violanotes.sudokusolver.exceptions.BoardEntityException;
 import com.violanotes.sudokusolver.exceptions.QueryException;
 
+import javax.management.Query;
 import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;
+import java.time.temporal.Temporal;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -15,7 +17,11 @@ import java.util.Map;
 /**
  * Created by pc on 7/20/2017.
  */
-public abstract class BoardEntity implements Associable<BoardEntity>, InitializableToEmpty, Queryable<BoardEntity> {
+public abstract class BoardEntity implements
+        Associable<BoardEntity>,
+        InitializableToEmpty,
+        Queryable<BoardEntity>,
+        Validatable {
 
     /**
      * all board entities should have a reference to the current board state
@@ -24,24 +30,20 @@ public abstract class BoardEntity implements Associable<BoardEntity>, Initializa
     protected BoardState boardState;
 
     public BoardEntity(boolean initializeToEmpty) throws BoardEntityException {
-        if (initializeToEmpty) this.initializeToEmpty();
+        if (initializeToEmpty) {
+            this.initializeToEmpty();
+        }
         QueryForClassImpl.populateListsMap(this);
     }
 
     public BoardEntity() throws BoardEntityException {
         initializeToEmpty();
-    }
-
-    /**
-     * instance initializer
-     */
-    {
         QueryForClassImpl.populateListsMap(this);
     }
 
     @Override
-    public <Q extends BoardEntity> Q queryForSingle(final Class<Q> clazz, Condition<Q> condition) throws QueryException {
-        List<Q> results = this.queryForClass(clazz, condition);
+    public <Q extends BoardEntity> Q queryForSingle(final Class<Q> clazz, Condition<Q> condition, Object...args) throws QueryException {
+        List<Q> results = this.queryForClass(clazz, condition, args);
 
         if (results != null && results.size() == 1) {
             return results.get(0);
@@ -52,8 +54,8 @@ public abstract class BoardEntity implements Associable<BoardEntity>, Initializa
     }
 
     @Override
-    public <Q extends BoardEntity> List<Q> queryForMultiple(Class<Q> clazz, Condition<Q> condition) throws QueryException {
-        List<Q> results = this.queryForClass(clazz, condition);
+    public <Q extends BoardEntity> List<Q> queryForMultiple(Class<Q> clazz, Condition<Q> condition, Object...args) throws QueryException {
+        List<Q> results = this.queryForClass(clazz, condition, args);
 
         if (results != null && results.size() > 1) {
             return results;
@@ -64,8 +66,8 @@ public abstract class BoardEntity implements Associable<BoardEntity>, Initializa
     }
 
     @Override
-    public <Q extends BoardEntity> List<Q> queryForMultiple(Class<Q> clazz, int count, Condition<Q> condition) throws QueryException {
-        List<Q> results = this.queryForClass(clazz, condition);
+    public <Q extends BoardEntity> List<Q> queryForMultiple(Class<Q> clazz, int count, Condition<Q> condition, Object...args) throws QueryException {
+        List<Q> results = this.queryForClass(clazz, condition, args);
 
         if (results != null && results.size() == count) {
             return results;
@@ -76,8 +78,8 @@ public abstract class BoardEntity implements Associable<BoardEntity>, Initializa
     }
 
     @Override
-    public <Q extends BoardEntity> Q queryForNone(Class<Q> clazz, Condition<Q> condition) throws QueryException {
-        List<Q> results = this.queryForClass(clazz, condition);
+    public <Q extends BoardEntity> Q queryForNone(Class<Q> clazz, Condition<Q> condition, Object...args) throws QueryException {
+        List<Q> results = this.queryForClass(clazz, condition, args);
 
         if (results != null && results.size() == 0) {
             return null;
@@ -89,15 +91,15 @@ public abstract class BoardEntity implements Associable<BoardEntity>, Initializa
 
     @Override
     @SuppressWarnings("unchecked")
-    public <Q extends BoardEntity> List<Q> queryForClass(Class<Q> clazz, Condition<Q> condition) throws QueryException {
+    public <Q extends BoardEntity> List<Q> queryForClass(Class<Q> clazz, Condition<Q> condition, Object...args) throws QueryException {
         System.out.println("querying entity of class '" + this.getClass().getSimpleName() + "' for " + clazz.getSimpleName());
         final List<Q> results = new ArrayList<>();
-        List<Q> list = QueryForClassImpl.getList(this.getClass(), clazz);
+        List<Q> list = QueryForClassImpl.getList(this, clazz);
 
-        if (list == null) throw new QueryException("Error querying for class name: " + clazz.getName());
+        if (list == null) throw new QueryException("Error querying for class name: " + clazz.getSimpleName());
 
         for (Q entity : list) {
-            if (condition.evaluate(entity)) {
+            if (condition.evaluate(entity, args)) {  //TODO insert args here?
                 results.add(entity);
             }
         }
@@ -115,69 +117,113 @@ public abstract class BoardEntity implements Associable<BoardEntity>, Initializa
         this.boardState = boardState;
     }
 
+    /**
+     * This class handles the maps that hold information on
+     * which items can be queried from a class.
+     *
+     * Each entity class name will have its own map.
+     * This map will map the queried-for class name with the
+     * concrete List.
+     */
     public static class QueryForClassImpl {
-        private QueryForClassImpl() {
-        }
 
-        public static Map<String, Map<String, List<BoardEntity>>> getSubclassListsMap() {
-            if (subclassListsMap == null) subclassListsMap = new HashMap<String, Map<String, List<BoardEntity>>>();
-            return subclassListsMap;
-        }
+        /**
+         * each entity instance (determined by hash code) will have
+         * its own instance of the QueryForClass implementation.
+         */
+        private static Map<BoardEntity, QueryForClassImpl> instances;
 
-        public static void addList(String subclassName, String listClassName, List<BoardEntity> list) {
-            if (getMapForSubclass(subclassName) == null) {
-                addSubclass(subclassName);
-            }
+        private Map<Class<? extends BoardEntity>, List<? extends BoardEntity>> listMap;
 
+        /**
+         * This class will be instantiated internally when classes
+         * call it to populate the field.
+         */
+        private QueryForClassImpl() {}
 
-            getSubclassListsMap().get(subclassName).put(listClassName, list);
+        // instance methods
+
+        public <T extends BoardEntity> void addList(Class<T> listItemClass, List<T> list) {
+            getListMap().put(listItemClass, list);
         }
 
         @SuppressWarnings("unchecked")
-        public static <Q> List<Q> getList(Class subclass, Class<Q> listClass) {
-            return (List<Q>)getSubclassListsMap()
-                    .get(subclass.getName())
-                    .get(listClass.getName());
+        public <Q> List<Q> getList(Class<Q> listItemClass) {
+            return (List<Q>) getListMap().get(listItemClass);
         }
 
-        public static void addSubclass(String subclassName) {
-//            if (getSubclassListsMap().get(subclassName) == null)
-                getSubclassListsMap().put(subclassName, new HashMap<>());
+        public Map<Class<? extends BoardEntity>, List<? extends BoardEntity>> getListMap() {
+            if (listMap == null) {
+                listMap = new HashMap<>();
+            }
+            return listMap;
         }
 
-        public static Map<String, List<BoardEntity>> getMapForSubclass(String subclassName) {
-            return getSubclassListsMap().get(subclassName);
+        // static methods
+
+        public static <T extends BoardEntity> void addList(BoardEntity entity, Class<T> listItemClass, List<T> list) {
+            getInstance(entity).getListMap().put(listItemClass, list);
         }
 
-        public static void populateListsMap(BoardEntity root) throws BoardEntityException {
+        @SuppressWarnings("unchecked")
+        public static <Q> List<Q> getList(BoardEntity entity, Class<Q> listClass) {
+            return (List<Q>)getInstance(entity).getList(listClass);
+        }
 
-//            println "populating ListsMap for root: '${root.class.simpleName}'"
+        private static Map<Class<? extends BoardEntity>, List<? extends BoardEntity>> getListMap(BoardEntity entity) {
+            return getInstance(entity).getListMap();
+        }
 
-            for (Field field : root.getClass().getDeclaredFields()) {
+        public static QueryForClassImpl getInstance(BoardEntity entity) {
+            if (getInstances().get(entity) == null) {
+                getInstances().put(entity, new QueryForClassImpl());
+            }
+            return getInstances().get(entity);
+        }
+
+        public static Map<BoardEntity, QueryForClassImpl> getInstances() {
+            if (instances == null) {
+                instances = new HashMap<>();
+            }
+
+            return instances;
+        }
+
+        public static void populateListsMap(BoardEntity entity) throws BoardEntityException {
+
+            System.out.println("populating ListsMap for entity: " + entity.getClass().getSimpleName() + "'");
+
+            for (Field field : entity.getClass().getDeclaredFields()) {
 
                 // to qualify, the field must by of class List<>
                 // and must have type parameter <BoardEntity>
                 try {
                     if (List.class.isAssignableFrom(field.getType())) {
-                        Class clazz = (Class) ((ParameterizedType) field.getGenericType()).getActualTypeArguments()[0];
-                        if (BoardEntity.class.isAssignableFrom(clazz)) {
+                        Class typeParamClazz = (Class) ((ParameterizedType) field.getGenericType()).getActualTypeArguments()[0];
+                        if (BoardEntity.class.isAssignableFrom(typeParamClazz)) {
                             field.setAccessible(true);
 
                             @SuppressWarnings("unchecked")
-                            List<BoardEntity> list = (List<BoardEntity>) field.get(root);
-                            addList(root.getClass().getName(), clazz.getName(), list);
+                            List<BoardEntity> list = (List<BoardEntity>) field.get(entity);
+                            addList(entity, typeParamClazz, list);
                         }
                     }
 
                 } catch (IllegalAccessException e) {
                     throw new BoardEntityException("Unable to access field '" + field.getName()
-                            + "' in entity '" + root.getClass().getSimpleName());
+                            + "' in entity '" + entity.getClass().getSimpleName());
                 }
             }
 
-//            System.out.println("subclassListsMap for class '" + root.getClass().getName() + "':" + subclassListsMap);
+            System.out.println("listMap for class '" + entity.getClass().getName() + "':" + getListMap(entity));
         }
 
-        private static Map<String, Map<String, List<BoardEntity>>> subclassListsMap;
+        public static void setInstances(Map<BoardEntity, QueryForClassImpl> instances) {
+            QueryForClassImpl.instances = instances;
+        }
+
+        public void setListMap(Map<Class<? extends BoardEntity>, List<? extends BoardEntity>> listMap) {
+            this.listMap = listMap;
+        }
     }
 }

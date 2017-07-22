@@ -1,11 +1,13 @@
-package com.violanotes.sudokusolver.board.supplemental;
+package com.violanotes.sudokusolver.board.geometric;
 
 import com.violanotes.sudokusolver.board.basic.BoardState;
 import com.violanotes.sudokusolver.board.basic.Square;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.violanotes.sudokusolver.board.entity.Associable;
 import com.violanotes.sudokusolver.board.entity.BoardEntity;
 import com.violanotes.sudokusolver.exceptions.AssociationException;
 import com.violanotes.sudokusolver.exceptions.BoardEntityException;
+import com.violanotes.sudokusolver.exceptions.BoardEntityValidationException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -13,28 +15,46 @@ import java.util.List;
 /**
  * Created by pc on 7/20/2017.
  */
-public class Box extends BoardEntity {
-    public Box(boolean initializeToEmpty) throws BoardEntityException {
+public class Row extends BoardEntity {
+
+    public Row(boolean initializeToEmpty) throws BoardEntityException {
         super(initializeToEmpty);
     }
 
-    public Box() throws BoardEntityException {}
-
-    @Override
-    public void initializeToEmpty() {
-        squares = new ArrayList<>();
+    public Row() throws BoardEntityException {
+        super();
     }
 
     @Override
-    public void associate(BoardEntity entity) throws AssociationException {
-        if (entity instanceof Square) {
-            squares.add((Square)entity);
-        } else if (entity instanceof BoardState) {
+    public void initializeToEmpty() {
+        squares = new ArrayList<Square>();
+    }
+
+    @Override
+    public void doValidate() throws BoardEntityValidationException {
+        List<Integer> filledIn = new ArrayList<>();
+
+        for (Square square : squares) {
+            if (square.getState().equals(Square.SquareState.FILLED)) {
+                if (!filledIn.contains(square.getNumber())) {
+                    filledIn.add(square.getNumber());
+                } else {
+                    throw new BoardEntityValidationException("Row " + index + " should have only one square filled in with number " + square.getNumber() + ", but has more than one");
+                }
+
+            }
+
+        }
+    }
+
+    @Override
+    public void doAssociate(Associable<BoardEntity> entity) throws AssociationException {
+        if (entity instanceof BoardState) {
             boardState = ((BoardState) (entity));
+        } else if (entity instanceof Square) {
+            squares.add((Square)entity);
         } else if (entity instanceof BoxRow) {
             boxRow = ((BoxRow) (entity));
-        } else if (entity instanceof BoxColumn) {
-            boxColumn = ((BoxColumn) (entity));
         } else {
             throw new AssociationException(entity, this);
         }
@@ -56,14 +76,6 @@ public class Box extends BoardEntity {
         this.boxRow = boxRow;
     }
 
-    public BoxColumn getBoxColumn() {
-        return boxColumn;
-    }
-
-    public void setBoxColumn(BoxColumn boxColumn) {
-        this.boxColumn = boxColumn;
-    }
-
     public Integer getIndex() {
         return index;
     }
@@ -75,6 +87,5 @@ public class Box extends BoardEntity {
     @JsonIgnore
     private List<Square> squares;
     private BoxRow boxRow;
-    private BoxColumn boxColumn;
     private Integer index;
 }
